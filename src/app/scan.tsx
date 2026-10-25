@@ -1,4 +1,5 @@
-import { BarcodeScanningResult, CameraView, useCameraPermissions } from 'expo-camera';
+import { BarcodeScanningResult, CameraView, scanFromURLAsync, useCameraPermissions } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
@@ -13,29 +14,14 @@ import { colors } from '../lib/theme';
 export default function Scan() {
   const [permission, requestPermission] = useCameraPermissions();
   const [torch, setTorch] = useState(false);
+  const [busy, setBusy] = useState(false);
   const insets = useSafeAreaInsets();
   const { add, findDuplicate } = useCards();
   // onBarcodeScanned scatta più volte per lo stesso codice: blocchiamo dopo la prima lettura.
   const locked = useRef(false);
 
-  if (!permission) return <View style={styles.screen} />;
-
-  if (!permission.granted) {
-    return (
-      <View style={[styles.screen, styles.center]}>
-        <T style={styles.msg}>{"serve l'accesso alla fotocamera per leggere i codici."}</T>
-        {permission.canAskAgain ? (
-          <Btn label="concedi accesso" variant="primary" onPress={requestPermission} />
-        ) : (
-          <T style={styles.hint}>abilitalo dalle impostazioni di sistema.</T>
-        )}
-        <Btn label="annulla" onPress={() => router.back()} />
-      </View>
-    );
-  }
-
-  const onScanned = ({ data, type }: BarcodeScanningResult) => {
-    if (locked.current || !data) return;
+  /** Gestisce un codice letto, dalla fotocamera o da un'immagine. */
+  const handleCode = (data: string, type: string) => {
     locked.current = true;
 
     const shared = parseQrPayload(data);
@@ -63,6 +49,59 @@ export default function Scan() {
     router.replace({ pathname: '/edit', params: { code: data, format: normalizeScannedType(type) } });
   };
 
+  const onCameraScanned = ({ data, type }: BarcodeScanningResult) => {
+    if (locked.current || !data) return;
+    handleCode(data, type);
+  };
+
+  /** Legge il codice da uno screenshot o da una foto. Con `crop` l'utente può ritagliare prima. */
+  const scanImage = async (crop = false) => {
+    const picked = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: crop,
+      quality: 1,
+    });
+    if (picked.canceled || locked.current) return;
+
+    setBusy(true);
+    try {
+      const results = await scanFromURLAsync(picked.assets[0].uri, FORMAT_LIST);
+      const hit = results.find((r) => r.data);
+      if (hit) {
+        handleCode(hit.data, hit.type);
+      } else if (crop) {
+        Alert.alert('nessun codice trovato', "prova con un'altra immagine, più nitida.");
+      } else {
+        Alert.alert('nessun codice trovato', "prova a ritagliare l'immagine attorno al codice.", [
+          { text: 'annulla', style: 'cancel' },
+          { text: 'ritaglia', onPress: () => scanImage(true) },
+        ]);
+      }
+    } catch {
+      Alert.alert('errore', "impossibile leggere l'immagine.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!permission) return <View style={styles.screen} />;
+
+  if (!permission.granted) {
+    return (
+      <View style={[styles.screen, styles.center]}>
+        <T style={styles.msg}>{"serve l'accesso alla fotocamera per leggere i codici."}</T>
+        {permission.canAskAgain ? (
+          <Btn label="concedi accesso" variant="primary" onPress={requestPermission} />
+        ) : (
+          <T style={styles.hint}>abilitalo dalle impostazioni di sistema.</T>
+        )}
+        <T style={styles.hint}>oppure</T>
+        <Btn label="da immagine" onPress={() => scanImage()} disabled={busy} />
+        <Btn label="annulla" onPress={() => router.back()} />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.screen}>
       <CameraView
@@ -70,14 +109,21 @@ export default function Scan() {
         facing="back"
         enableTorch={torch}
         barcodeScannerSettings={{ barcodeTypes: FORMAT_LIST }}
-        onBarcodeScanned={onScanned}
+        onBarcodeScanned={onCameraScanned}
       />
       <View style={[styles.overlay, { paddingTop: insets.top + 16 }]} pointerEvents="box-none">
-        <T style={styles.title}>{'>'} inquadra il codice_</T>
+        <T style={styles.title}>{busy ? '> analizzo immagine...' : '> inquadra il codice_'}</T>
         <View style={styles.frame} />
         <View style={[styles.bottom, { paddingBottom: insets.bottom + 16 }]}>
-          <Btn label={torch ? 'torcia: on' : 'torcia: off'} onPress={() => setTorch((t) => !t)} style={styles.flex} />
-          <Btn label="annulla" onPress={() => router.back()} style={styles.flex} />
+          <View style={styles.row}>
+            <Btn
+              label={torch ? 'torcia: on' : 'torcia: off'}
+              onPress={() => setTorch((t) => !t)}
+              style={styles.flex}
+            />
+            <Btn label="da immagine" onPress={() => scanImage()} disabled={busy} style={styles.flex} />
+          </View>
+          <Btn label="annulla" onPress={() => router.back()} style={styles.translucent} />
         </View>
       </View>
     </View>
@@ -103,6 +149,14 @@ const styles = StyleSheet.create({
     borderColor: colors.accent,
     borderRadius: 8,
   },
-  bottom: { flexDirection: 'row', gap: 12, paddingHorizontal: 16, width: '100%', backgroundColor: 'rgba(0,0,0,0.6)', paddingTop: 16 },
+  bottom: {
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    width: '100%',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
+  row: { flexDirection: 'row', gap: 12 },
   flex: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
+  translucent: { backgroundColor: 'rgba(0,0,0,0.4)' },
 });
