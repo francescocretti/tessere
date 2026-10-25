@@ -6,11 +6,13 @@ Tutto resta sul telefono: nessun account, nessun server.
 ## Funzioni
 
 - **Scansione** dalla fotocamera (EAN-13/8, UPC-A/E, Code128/39/93, ITF, Codabar, QR, PDF417, DataMatrix, Aztec)
-- **Inserimento manuale** per le carte con solo il numero stampato (anteprima e validazione del codice in tempo reale)
-- **Lista** in ordine alfabetico con ricerca per nome o numero
+- **Scansione da immagine**: _+ scansiona → da immagine_ legge il codice da uno screenshot o da una foto, scelti con il Photo Picker di sistema (nessun permesso di accesso ai file). Se il codice non viene trovato, propone di ritagliare l'immagine e riprovare
+- **Inserimento manuale** per le carte con solo il numero stampato, con anteprima e validazione del codice in tempo reale. Il formato è su AUTO di default: EAN-13, EAN-8 e UPC-A vengono riconosciuti dalla cifra di controllo, tutto il resto diventa CODE128
+- **Note** facoltative su ogni carta (max 200 caratteri)
+- **Lista** in ordine alfabetico con ricerca per nome, numero o note
 - **Visualizzazione**: luminosità al massimo e schermo sempre acceso finché la carta è aperta
-- **Condivisione via QR**: _carta → condividi_ mostra un QR. Un amico lo inquadra con _+ scansiona_ e la carta viene importata
-- **Backup JSON**: _backup → esporta/importa_. All'import, le carte già presenti (stesso codice e formato) vengono saltate
+- **Condivisione via QR**: _carta → condividi_ mostra un QR. Un amico lo inquadra con _+ scansiona_ e la carta viene importata. Le note non vengono condivise
+- **Backup JSON**: _backup → esporta/importa_, note comprese. All'import, le carte già presenti (stesso codice e formato) vengono saltate
 
 ## Sviluppo
 
