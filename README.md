@@ -41,8 +41,24 @@ npm run apk
 # → android/app/build/outputs/apk/release/tessere-app-release.apk
 ```
 
-L'APK di release è firmato con il keystore di debug del template Expo. Va bene per la distribuzione tra amici:
-la firma resta la stessa da una build all'altra, quindi gli aggiornamenti si installano sopra la versione precedente.
+### Firma
+
+L'APK di release è firmato con un keystore personale che non è nel repo. Il config plugin `plugins/withReleaseSigning.js`
+lo legge da `~/.gradle/gradle.properties`:
+
+```properties
+TESSERE_KEYSTORE_FILE=/percorso/assoluto/tessere-release.jks
+TESSERE_KEYSTORE_PASSWORD=...
+TESSERE_KEY_ALIAS=tessere
+TESSERE_KEY_PASSWORD=...
+```
+
+Senza queste proprietà la release viene firmata con il keystore di debug (Gradle lo segnala con un avviso):
+il progetto compila, ma l'APK non si installa sopra quello ufficiale.
+
+Il keystore e le password vanno conservati in un posto sicuro: senza di loro non si possono più pubblicare
+aggiornamenti installabili sopra la versione esistente.
+
 A ogni nuova versione incrementa `version` e `android.versionCode` in `app.json`.
 
 L'APK è compilato solo per `arm64-v8a` e **senza minificazione R8** (`expo-build-properties` in `app.json`). Non riattivarla:

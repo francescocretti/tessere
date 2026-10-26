@@ -47,7 +47,8 @@
           }
         }
       ],
-      "./plugins/withApkName"
+      "./plugins/withApkName",
+      "./plugins/withReleaseSigning"
     ]
   }
 }
