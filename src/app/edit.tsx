@@ -7,6 +7,7 @@ import { BarcodeView } from '../components/BarcodeView';
 import { Btn, Field, Label, T } from '../components/ui';
 import { BarcodeFormat, detectFormat, FORMAT_LIST, FORMATS, isFormat, isValidFor } from '../lib/barcode';
 import { NOTE_MAX, useCards } from '../lib/cards';
+import { Chain, findChain, suggestChains } from '../lib/chains';
 import { cardColors, colors, fonts } from '../lib/theme';
 
 type Params = { id?: string; code?: string; format?: string };
@@ -27,7 +28,30 @@ export default function Edit() {
     existing?.format ?? (isFormat(params.format) ? params.format : 'auto'),
   );
   const [color, setColor] = useState(existing?.color ?? cardColors[0]);
+  // Il colore suggerito dal catalogo non deve sovrascrivere una scelta esplicita.
+  const [colorTouched, setColorTouched] = useState(!!existing);
   const [note, setNote] = useState(existing?.note ?? '');
+
+  const suggestions = suggestChains(name).filter((c) => c.name !== name.trim());
+  // Il colore corrente resta selezionabile anche se non è nella palette (es. colore di una catena).
+  const swatches = cardColors.includes(color) ? cardColors : [color, ...cardColors];
+
+  const onNameChange = (value: string) => {
+    setName(value);
+    const chain = findChain(value);
+    if (chain && !colorTouched) setColor(chain.color);
+  };
+
+  const pickChain = (chain: Chain) => {
+    setName(chain.name);
+    setColor(chain.color);
+    setColorTouched(false);
+  };
+
+  const pickColor = (c: string) => {
+    setColor(c);
+    setColorTouched(true);
+  };
 
   const trimmedCode = code.trim();
   const format = choice === 'auto' ? detectFormat(trimmedCode) : choice;
@@ -83,15 +107,27 @@ export default function Edit() {
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {fromScan && <T style={styles.ok}>✓ letto: {FORMATS[format].label}</T>}
 
-        <Field
-          label="nome"
-          value={name}
-          onChangeText={setName}
-          placeholder="es. Esselunga"
-          autoFocus={!existing}
-          autoCapitalize="words"
-          maxLength={40}
-        />
+        <View style={styles.group}>
+          <Field
+            label="nome"
+            value={name}
+            onChangeText={onNameChange}
+            placeholder="es. Esselunga"
+            autoFocus={!existing}
+            autoCapitalize="words"
+            maxLength={40}
+          />
+          {suggestions.length > 0 && (
+            <View style={styles.chips}>
+              {suggestions.map((c) => (
+                <Pressable key={c.name} onPress={() => pickChain(c)} style={[styles.chip, styles.suggestion]}>
+                  <View style={[styles.dot, { backgroundColor: c.color }]} />
+                  <T style={styles.chipText}>{c.name}</T>
+                </Pressable>
+              ))}
+            </View>
+          )}
+        </View>
 
         <Field
           label="codice"
@@ -127,10 +163,10 @@ export default function Edit() {
         <View style={styles.group}>
           <Label>colore</Label>
           <View style={styles.chips}>
-            {cardColors.map((c) => (
+            {swatches.map((c) => (
               <Pressable
                 key={c}
-                onPress={() => setColor(c)}
+                onPress={() => pickColor(c)}
                 style={[styles.swatch, { backgroundColor: c }, c === color && styles.swatchActive]}
               />
             ))}
@@ -182,6 +218,8 @@ const styles = StyleSheet.create({
   },
   chipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
   chipText: { fontSize: 12, fontFamily: fonts.medium },
+  suggestion: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  dot: { width: 10, height: 10, borderRadius: 2 },
   hint: { color: colors.muted, fontSize: 12, lineHeight: 18 },
   note: { minHeight: 72, textAlignVertical: 'top' },
   delete: { marginTop: 24 },
