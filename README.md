@@ -17,6 +17,7 @@ Tutto resta sul telefono: nessun account, nessun server.
 - **Scansione** dalla fotocamera (EAN-13/8, UPC-A/E, Code128/39/93, ITF, Codabar, QR, PDF417, DataMatrix, Aztec)
 - **Scansione da immagine**: _+ scansiona → da immagine_ legge il codice da uno screenshot o da una foto, scelti con il Photo Picker di sistema (nessun permesso di accesso ai file). Se il codice non viene trovato, propone di ritagliare l'immagine e riprovare
 - **Inserimento manuale** per le carte con solo il numero stampato, con anteprima e validazione del codice in tempo reale. Il formato è su AUTO di default: EAN-13, EAN-8 e UPC-A vengono riconosciuti dalla cifra di controllo, tutto il resto diventa CODE128
+- **Suggerimenti di nome e colore**: mentre scrivi il nome, propone le catene più diffuse (Esselunga, Coop, Conad, Carrefour, Lidl, IKEA…) da un catalogo offline. Toccandone una si impostano nome e colore del marchio. Il catalogo è in `src/lib/chains.ts`
 - **Note** facoltative su ogni carta (max 200 caratteri)
 - **Lista** in ordine alfabetico con ricerca per nome, numero o note
 - **Visualizzazione**: luminosità al massimo e schermo sempre acceso finché la carta è aperta
