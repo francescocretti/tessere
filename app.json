@@ -9,7 +9,7 @@
     "userInterfaceStyle": "dark",
     "backgroundColor": "#0b0d0e",
     "android": {
-      "package": "dev.franz.tessere",
+      "package": "io.github.francescocretti.tessere",
       "versionCode": 2,
       "adaptiveIcon": {
         "backgroundColor": "#0b0d0e",
