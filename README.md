@@ -37,7 +37,7 @@ La cartella `android/` è generata da `expo prebuild` e non va modificata a mano
 
 ```bash
 npm run apk
-# → android/app/build/outputs/apk/release/app-release.apk
+# → android/app/build/outputs/apk/release/tessere-app-release.apk
 ```
 
 L'APK di release è firmato con il keystore di debug del template Expo. Va bene per la distribuzione tra amici:
