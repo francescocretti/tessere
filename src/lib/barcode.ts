@@ -39,12 +39,32 @@ export function isFormat(value: unknown): value is BarcodeFormat {
   return typeof value === 'string' && value in FORMATS;
 }
 
+/** Costanti `Barcode.FORMAT_*` di ML Kit. */
+const MLKIT_FORMATS: Record<number, BarcodeFormat> = {
+  1: 'code128',
+  2: 'code39',
+  4: 'code93',
+  8: 'codabar',
+  16: 'datamatrix',
+  32: 'ean13',
+  64: 'ean8',
+  128: 'itf14',
+  256: 'qr',
+  512: 'upc_a',
+  1024: 'upc_e',
+  2048: 'pdf417',
+  4096: 'aztec',
+};
+
 /**
  * Converte il `type` restituito dallo scanner nel nostro formato.
- * Lo scanner può restituire varianti (es. "EAN_13", "org.gs1.EAN-13").
+ * La fotocamera restituisce una stringa (anche in varianti come "EAN_13" o "org.gs1.EAN-13").
+ * Su Android, `scanFromURLAsync` restituisce invece la costante numerica di ML Kit,
+ * anche se i tipi di expo-camera dichiarano `string`.
  */
-export function normalizeScannedType(type: string): BarcodeFormat {
-  const t = type.toLowerCase().replace(/[^a-z0-9]/g, '');
+export function normalizeScannedType(type: string | number): BarcodeFormat {
+  if (typeof type === 'number') return MLKIT_FORMATS[type] ?? 'code128';
+  const t = String(type).toLowerCase().replace(/[^a-z0-9]/g, '');
   const table: [string, BarcodeFormat][] = [
     ['ean13', 'ean13'],
     ['ean8', 'ean8'],

@@ -21,7 +21,7 @@ export default function Scan() {
   const locked = useRef(false);
 
   /** Gestisce un codice letto, dalla fotocamera o da un'immagine. */
-  const handleCode = (data: string, type: string) => {
+  const handleCode = (data: string, type: string | number) => {
     locked.current = true;
 
     const shared = parseQrPayload(data);
@@ -77,8 +77,10 @@ export default function Scan() {
           { text: 'ritaglia', onPress: () => scanImage(true) },
         ]);
       }
-    } catch {
-      Alert.alert('errore', "impossibile leggere l'immagine.");
+    } catch (e) {
+      console.warn('Scansione da immagine fallita', e);
+      const detail = e instanceof Error ? e.message : String(e);
+      Alert.alert('errore', `impossibile leggere l'immagine.\n\n${detail}`);
     } finally {
       setBusy(false);
     }
