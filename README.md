@@ -3,6 +3,15 @@
 Portafoglio di carte fedeltà per Android. Scansioni il codice della carta una volta, poi in cassa mostri lo schermo.
 Tutto resta sul telefono: nessun account, nessun server.
 
+<p>
+  <img src="docs/screenshots/lista.png" width="200" alt="Lista delle carte con ricerca">
+  <img src="docs/screenshots/carta.png" width="200" alt="Carta aperta con codice a barre e nota">
+  <img src="docs/screenshots/nuova-carta.png" width="200" alt="Nuova carta con formato rilevato automaticamente">
+  <img src="docs/screenshots/condividi.png" width="200" alt="QR per condividere una carta">
+</p>
+
+<sub>Le carte negli screenshot sono inventate.</sub>
+
 ## Funzioni
 
 - **Scansione** dalla fotocamera (EAN-13/8, UPC-A/E, Code128/39/93, ITF, Codabar, QR, PDF417, DataMatrix, Aztec)
